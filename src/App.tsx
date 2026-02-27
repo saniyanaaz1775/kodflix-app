@@ -1,7 +1,9 @@
 import './style.css'
 import { useEffect, useState } from 'react'
 
-const OMDB_API_KEY = '15549baf' // replace with your own key if needed
+// Use env var; fallback so app works if .env wasn't loaded (e.g. restart dev server to pick up .env)
+const OMDB_API_KEY =
+  (import.meta.env.VITE_OMDB_API_KEY as string)?.trim() || '15549baf'
 const OMDB_BASE_URL = 'https://www.omdbapi.com/'
 
 type OmdbMovie = {
@@ -35,6 +37,11 @@ async function fetchCategory(query: string): Promise<OmdbMovie[]> {
 
   const response = await fetch(url.toString())
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error(
+        'Invalid or missing OMDb API key. Add VITE_OMDB_API_KEY to .env and restart the dev server. If you just signed up, activate your key via the link in the OMDb email.',
+      )
+    }
     throw new Error(`OMDb HTTP error: ${response.status}`)
   }
   const data = await response.json()
